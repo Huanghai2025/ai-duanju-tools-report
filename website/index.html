@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI 短剧 / 漫剧 开源开发工具调研报告</title>
+<style>
+:root{
+  --bg:#0f1115; --card:#171a21; --ink:#e8eaed; --muted:#9aa4b2;
+  --accent:#6ea8fe; --accent2:#7ee787; --border:#2a2f3a; --warn:#f0b429; --bad:#ff7b72;
+}
+* { box-sizing:border-box; }
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+  line-height:1.75; font-size:16px;
+}
+.wrap{ max-width:1080px; margin:0 auto; padding:48px 24px 80px; }
+header.hero{
+  border-bottom:1px solid var(--border); padding-bottom:24px; margin-bottom:32px;
+}
+header.hero h1{ font-size:30px; margin:0 0 8px; color:#fff; }
+header.hero .meta{ color:var(--muted); font-size:14px; }
+h1,h2,h3{ color:#fff; line-height:1.3; }
+h2{ margin-top:40px; padding-top:16px; border-top:1px solid var(--border); font-size:23px; }
+h3{ margin-top:28px; font-size:18px; color:var(--accent); }
+p{ color:var(--ink); }
+a{ color:var(--accent); }
+code{ background:var(--card); padding:2px 6px; border-radius:4px; font-size:13px; color:var(--accent2); }
+pre{ background:var(--card); border:1px solid var(--border); border-radius:8px; padding:14px; overflow:auto; }
+pre code{ background:none; padding:0; color:var(--ink); }
+table{ width:100%; border-collapse:collapse; margin:18px 0; font-size:14px; }
+th,td{ border:1px solid var(--border); padding:9px 11px; text-align:left; vertical-align:top; }
+th{ background:var(--card); color:#fff; }
+tbody tr:nth-child(even){ background:rgba(255,255,255,0.02); }
+blockquote{
+  border-left:4px solid var(--accent); background:var(--card); margin:18px 0;
+  padding:12px 16px; border-radius:0 8px 8px 0; color:var(--muted);
+}
+blockquote p{ color:var(--muted); margin:0; }
+ul,ol{ padding-left:22px; }
+li{ margin:4px 0; }
+hr{ border:none; border-top:1px solid var(--border); margin:32px 0; }
+.footnote{ color:var(--muted); font-size:13px; margin-top:40px; border-top:1px solid var(--border); padding-top:16px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1 id="ai">AI 短剧 / 漫剧 开源开发工具调研报告</h1>
+<blockquote>
+<p>生成日期：2026-07-07 ｜ 数据来源：GitHub API 实时星数（部分因限流为估算）+ 官方文档 + 社区调研
+适用场景：用开源工具完成「剧本 → 分镜/资产 → 动画/渲染 → 交互/播放 → 发布」的 AI 短剧 / 漫剧生产管线</p>
+</blockquote>
+<hr />
+<h2 id="_1">一、背景与评估框架</h2>
+<p>AI 短剧 / 漫剧的生产通常包含 5 个环节，每个环节都有对应的开源工具可切入：</p>
+<pre><code>剧本生成 ──▶ 分镜/角色资产 ──▶ 动画/渲染 ──▶ 交互/播放 ──▶ 批量发布
+ (LLM)        (ComfyUI)       (Blender/引擎)  (Ren'Py/引擎)   (MoneyPrinterTurbo)
+</code></pre>
+<p>本报告按以下维度对 10 款核心工具 + 3 款补充工具做逐项分析：</p>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>主要功能特性</td>
+<td>是否内置物理引擎、动画系统、关卡编辑器、节点工作流等</td>
+</tr>
+<tr>
+<td>语言 / 脚本</td>
+<td>编程语言或可视化脚本系统（蓝图 / 拖拽）</td>
+</tr>
+<tr>
+<td>学习曲线</td>
+<td>入门 / 中等 / 高级</td>
+</tr>
+<tr>
+<td>社区活跃度</td>
+<td>GitHub 星数、官方文档质量、教程丰富度</td>
+</tr>
+<tr>
+<td>跨平台</td>
+<td>Windows / macOS / Linux / Web / iOS / Android</td>
+</tr>
+<tr>
+<td>非程序员友好</td>
+<td>是否支持蓝图 / 拖拽式编程</td>
+</tr>
+<tr>
+<td>商业化生产级</td>
+<td>是否能达到生产级别、可商业落地</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>⭐ 星数为 2026-07-07 抓取；ComfyUI 因 GitHub API 限流未能实时核实，标注为估算值。</p>
+</blockquote>
+<hr />
+<h2 id="10-3">二、工具详细清单（10 款核心 + 3 款补充）</h2>
+<h3 id="1-godot-engine-1137k-c-mit">1. Godot Engine ⭐113.7k ｜ C++ ｜ MIT</h3>
+<p><strong>定位</strong>：全能 2D/3D 游戏与交互引擎，最适合做「可交互的 AI 短剧 / 漫剧」。</p>
+<ul>
+<li>✅ <strong>优势</strong></li>
+<li>内置完整物理引擎（2D/3D）、动画系统（AnimationPlayer + 骨骼）、TileMap 关卡编辑器、可视化脚本（VisualScript）与场景树编辑器。</li>
+<li>真正开源（MIT），无抽成、无黑盒，可自由商业化。</li>
+<li>跨平台导出最干净：Win / macOS / Linux / Web / iOS / Android / 主机。</li>
+<li>节点-场景架构对「分镜即场景」的短剧结构非常友好，可把每集做成 Scene。</li>
+<li>社区极活跃（11 万+⭐），文档完善，中文资料丰富。</li>
+<li>❌ <strong>劣势</strong></li>
+<li>GDScript/C# 仍需写代码，纯小白有门槛（虽有可视化脚本但非主流工作流）。</li>
+<li>影视级渲染质感弱于 Blender/Unity，偏「游戏感」。</li>
+<li>3D 生态与美术资源库不如商业引擎丰富。</li>
+</ul>
+<p><strong>维度速评</strong>：物理引擎 ✅｜动画系统 ✅｜关卡编辑器 ✅｜学习曲线 中等｜跨平台 全｜非程序员 中等偏易｜商业化生产级 ✅</p>
+<hr />
+<h3 id="2-renpy-66k-renpy-python-mit">2. Ren'Py ⭐6.6k ｜ Ren'Py 脚本(Python) ｜ MIT</h3>
+<p><strong>定位</strong>：最成熟的视觉小说引擎，做「对话驱动型漫剧 / 互动短剧」的首选。</p>
+<ul>
+<li>✅ <strong>优势</strong></li>
+<li>极简脚本语法（基于 Python），大量现成模板，非程序员可快速上手写剧本分支。</li>
+<li>原生支持立绘、CG、配音、文字特效、分支选择、存档，正好对应漫剧叙事。</li>
+<li>一键导出 Win / macOS / Linux / Android / iOS / Web。</li>
+<li>多年沉淀，Steam 上大量商业视觉小说基于它，生产级验证充分。</li>
+<li>❌ <strong>劣势</strong></li>
+<li>非游戏引擎，无物理引擎 / 关卡编辑器，不适合做复杂交互玩法。</li>
+<li>画面表现依赖外部美术（立绘、背景），本身不产动画。</li>
+<li>星数相对少（社区偏小但极专注）。</li>
+</ul>
+<p><strong>维度速评</strong>：物理引擎 ❌｜动画系统 ⚠️(过场/立绘)｜关卡编辑器 ❌｜学习曲线 入门｜跨平台 全｜非程序员 非常友好｜商业化生产级 ✅</p>
+<hr />
+<h3 id="3-comfyui-80k-python-gpl-30">3. ComfyUI ⭐≈80k（估算）｜ Python ｜ GPL-3.0</h3>
+<p><strong>定位</strong>：AI 图像 / 视频生成的节点工作流，是「分镜、角色、场景资产」的生产中枢。</p>
+<ul>
+<li>✅ <strong>优势</strong></li>
+<li>纯节点拖拽，零代码即可编排文生图 / 图生图 / 视频生成（含 SDXL、Wan、LTX 等视频模型）。</li>
+<li>本地部署、数据隐私可控，支持 API 批量调用，适合稳定产出角色一致性资产。</li>
+<li>社区节点生态爆炸式增长（LoRA、ControlNet、IP-Adapter 等），可控性极强。</li>
+<li>最新版已支持图像、视频、3D、音频多模态生成。</li>
+<li>❌ <strong>劣势</strong></li>
+<li>仅产出「素材」，不做成片叙事，需配合引擎/剪辑。</li>
+<li>GPL-3.0 协议，若做闭源 SaaS 需注意合规（MIT 项目引用需谨慎）。</li>
+<li>节点流复杂时调试成本高，依赖显卡算力。</li>
+</ul>
+<p><strong>维度速评</strong>：物理引擎 ❌｜动画系统 ⚠️(AI生成)｜关卡编辑器 ❌｜学习曲线 中等（节点）｜跨平台 桌面+Web UI｜非程序员 非常友好（拖拽）｜商业化生产级 ✅（本地/API）</p>
+<hr />
+<h3 id="4-blender-191k-cpython-gpl-30">4. Blender ⭐19.1k ｜ C++/Python ｜ GPL-3.0</h3>
+<p><strong>定位</strong>：影视级 3D/2D 动画 DCC，做高质量漫剧动画的工业标准。</p>
+<ul>
+<li>✅ <strong>优势</strong></li>
+<li>内置物理引擎（刚体/柔体/布料/流体）、完整骨骼动画、Grease Pencil 2D 动画、合成与视频剪辑。</li>
+<li>影视/动画工作室级产能，可产出电影质感短剧。</li>
+<li>跨平台（Win/macOS/Linux），Python 可脚本化批量渲染。</li>
+<li>社区庞大、教程世界第一丰富。</li>
+<li>❌ <strong>劣势</strong></li>
+<li>功能极庞大，学习曲线陡峭（高级）。</li>
+<li>无「关卡编辑器 / 游戏交互」概念，偏离线渲染，不直接做可交互短剧。</li>
+<li>GPL 协议，插件分发需注意。</li>
+</ul>
+<p><strong>维度速评</strong>：物理引擎 ✅｜动画系统 ✅✅｜关卡编辑器 ❌｜学习曲线 高级｜跨平台 桌面｜非程序员 中等（节点但复杂）｜商业化生产级 ✅</p>
+<hr />
+<h3 id="5-synfig-studio-22k-c-gpl-30">5. Synfig Studio ⭐2.2k ｜ C++ ｜ GPL-3.0</h3>
+<p><strong>定位</strong>：轻量 2D 矢量动画工具，适合做「骨骼补间漫剧」。</p>
+<ul>
+<li>✅ <strong>优势</strong></li>
+<li>矢量骨骼动画 + 自动补间，擅长角色口型 / 动作，文件小、可无损缩放。</li>
+<li>开源免费，比商业 2D 工具轻量，入门成本低。</li>
+<li>❌ <strong>劣势</strong></li>
+<li>社区较小（仅 2.2k⭐），文档与教程远少于 Blender/GF。</li>
+<li>无物理引擎、无交互能力，仅动画产出。</li>
+<li>稳定性与高级特效弱，大型项目吃力。</li>
+</ul>
+<p><strong>维度速评</strong>：物理引擎 ❌｜动画系统 ✅(2D矢量)｜关卡编辑器 ❌｜学习曲线 中等｜跨平台 桌面｜非程序员 中等｜商业化生产级 ⚠️(中小项目)</p>
+<hr />
+<h3 id="6-twine-28k-typescripthtml-gpl-30">6. Twine ⭐2.8k ｜ TypeScript/HTML ｜ GPL-3.0</h3>
+<p><strong>定位</strong>：超轻量交互式小说工具，纯非程序员做「分支剧情漫剧原型」最快。</p>
+<ul>
+<li>✅ <strong>优势</strong></li>
+<li>纯可视化链接（节点/ passages），完全零代码，编剧可直接用。</li>
+<li>输出即 HTML，天然跨全平台（浏览器打开即玩），极易嵌入网页/小程序 WebView。</li>
+<li>适合快速验证剧本分支、做互动短剧 MVP。</li>
+<li>❌ <strong>劣势</strong></li>
+<li>无图形渲染，只有文字 + 基础样式，需配合美术/引擎才有「漫剧感」。</li>
+<li>不适合复杂动画与商业美术呈现。</li>
+<li>社区偏小，偏文学/实验性。</li>
+</ul>
+<p><strong>维度速评</strong>：物理引擎 ❌｜动画系统 ❌｜关卡编辑器 ❌｜学习曲线 入门｜跨平台 全(Web)｜非程序员 极友好｜商业化生产级 ⚠️(原型/文字向)</p>
+<hr />
+<h3 id="7-phaser-399k-javascripttypescript-mit">7. Phaser ⭐39.9k ｜ JavaScript/TypeScript ｜ MIT</h3>
+<p><strong>定位</strong>：HTML5 游戏框架，做 Web 端互动短剧 / 漫剧小游戏。</p>
+<ul>
+<li>✅ <strong>优势</strong></li>
+<li>纯 JS/TS，Arcade + Matter.js 物理引擎、动画/精灵系统齐全，Web 原生跨平台（含移动浏览器）。</li>
+<li>MIT 协议，商业化无负担；社区大（4 万⭐）、教程多。</li>
+<li>适合做「网页版互动漫剧」并嵌入小程序/官网。</li>
+<li>❌ <strong>劣势</strong></li>
+<li>需写代码（程序员向），非程序员不友好。</li>
+<li>自带无可视化关卡编辑器，常配合 Tiled 等外部工具。</li>
+<li>重 Web，原生 App 需 Cordova/Capacitor 封装。</li>
+</ul>
+<p><strong>维度速评</strong>：物理引擎 ✅(Arcade/Matter)｜动画系统 ✅(精灵)｜关卡编辑器 ❌(需Tiled)｜学习曲线 中等(需编程)｜跨平台 Web为主｜非程序员 ❌｜商业化生产级 ✅</p>
+<hr />
+<h3 id="8-cocos-creatorcocos2d-x-191k-cjavascript-mit">8. Cocos Creator（cocos2d-x ⭐19.1k）｜ C++/JavaScript ｜ MIT</h3>
+<p><strong>定位</strong>：手游级 2D/3D 游戏引擎，做「移动端漫剧小游戏 / 互动剧」的商业化利器。</p>
+<ul>
+<li>✅ <strong>优势</strong></li>
+<li>可视化编辑器 + JS/TS 脚本，内置物理、动画、UI、粒子，移动端性能强。</li>
+<li>微信小游戏 / 抖音小游戏 / iOS / Android / Web 导出成熟，非常适合短剧分发场景。</li>
+<li>MIT 协议，大厂（尤其国内手游）大量商用验证。</li>
+<li>❌ <strong>劣势</strong></li>
+<li>编辑器偏重，初学有成本；生态中文强但海外资料少于 Unity/Godot。</li>
+<li>3D 能力弱于 Godot 新版本。</li>
+<li>cocos2d-x 主仓近年提交放缓，重心转 Cocos Creator 新架构。</li>
+</ul>
+<p><strong>维度速评</strong>：物理引擎 ✅｜动画系统 ✅｜关卡编辑器 ✅(可视化)｜学习曲线 中等｜跨平台 全(强移动)｜非程序员 中等偏友好｜商业化生产级 ✅</p>
+<hr />
+<h3 id="9-opentoonz-74k-c-bsd">9. OpenToonz ⭐7.4k ｜ C++ ｜ 自定义(BSD类)</h3>
+<p><strong>定位</strong>：专业 2D 手绘动画软件（吉卜力级），做高品质帧动画漫剧。</p>
+<ul>
+<li>✅ <strong>优势</strong></li>
+<li>工作室级 2D 手绘流程（扫描、上色、特效、合成），曾被吉卜力采用。</li>
+<li>开源免费，功能深度超越多数免费 2D 工具。</li>
+<li>❌ <strong>劣势</strong></li>
+<li>界面老旧、学习曲线陡，新手劝退。</li>
+<li>无物理/交互，纯动画产出；社区中等偏小。</li>
+<li>移动端不可用，仅桌面。</li>
+</ul>
+<p><strong>维度速评</strong>：物理引擎 ❌｜动画系统 ✅✅(手绘)｜关卡编辑器 ❌｜学习曲线 高级｜跨平台 桌面｜非程序员 中等｜商业化生产级 ✅(工作室)</p>
+<hr />
+<h3 id="10-moneyprinterturbo-962k-python-mit">10. MoneyPrinterTurbo ⭐96.2k ｜ Python ｜ MIT</h3>
+<p><strong>定位</strong>：AI 一键生成短视频（脚本→配音→字幕→素材→成片），最贴合「AI 短剧批量产出」。</p>
+<ul>
+<li>✅ <strong>优势</strong></li>
+<li>输入主题即自动生成高清短视频，含语音合成、字幕、素材匹配，非程序员也能跑。</li>
+<li>星数极高（9.6 万⭐）、更新活跃，MIT 可商用。</li>
+<li>适合做「口播类 / 解说类 AI 短剧」的规模化生产。</li>
+<li>❌ <strong>劣势</strong></li>
+<li>偏「自动生成」而非「精细创作」，剧情/美术可控性低，难做有角色连续性的漫剧。</li>
+<li>依赖 LLM/配音 API Key，需自备额度与合规。</li>
+<li>无交互、无物理、无动画编辑，是流水线末端工具。</li>
+</ul>
+<p><strong>维度速评</strong>：物理引擎 ❌｜动画系统 ❌(自动剪辑)｜关卡编辑器 ❌｜学习曲线 入门(配置)｜跨平台 桌面+Web UI｜非程序员 友好｜商业化生产级 ✅(需自备API/合规)</p>
+<hr />
+<h3 id="_2">补充候选（简述）</h3>
+<table>
+<thead>
+<tr>
+<th>工具</th>
+<th>⭐</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Krita</strong></td>
+<td>10.0k</td>
+<td>开源绘画 + 2D 动画（GPL-3），适合漫剧分镜/原画，弱于矢量动画</td>
+</tr>
+<tr>
+<td><strong>three.js</strong></td>
+<td>113.6k</td>
+<td>Web 3D 渲染框架（MIT），做网页端 3D 漫剧，需编程</td>
+</tr>
+<tr>
+<td><strong>n8n / Langflow</strong></td>
+<td>195.5k / 151.3k</td>
+<td>可视化 AI 工作流编排，非程序员友好，用于串起「脚本→资产→成片」自动化管线</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="_3">三、总对比表格</h2>
+<blockquote>
+<p>图例：✅ 内置 ｜ ⚠️ 部分/间接 ｜ ❌ 无 ｜ 入门 / 中等 / 高级 = 学习曲线</p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>工具</th>
+<th>类型</th>
+<th>⭐</th>
+<th>语言/脚本</th>
+<th>物理引擎</th>
+<th>动画系统</th>
+<th>关卡编辑器</th>
+<th>学习曲线</th>
+<th>跨平台(W/M/L/Web/iOS/And)</th>
+<th>非程序员友好</th>
+<th>商业化生产级</th>
+<th>一句话定位</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Godot</td>
+<td>游戏/交互引擎</td>
+<td>113.7k</td>
+<td>GDScript/C#/可视化</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+<td>中等</td>
+<td>全</td>
+<td>中</td>
+<td>✅</td>
+<td>可交互 AI 短剧全能底座</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Ren'Py</td>
+<td>视觉小说</td>
+<td>6.6k</td>
+<td>Ren'Py(Py)</td>
+<td>❌</td>
+<td>⚠️</td>
+<td>❌</td>
+<td>入门</td>
+<td>全</td>
+<td>非常友好</td>
+<td>✅</td>
+<td>对话分支漫剧首选</td>
+</tr>
+<tr>
+<td>3</td>
+<td>ComfyUI</td>
+<td>AI 工作流</td>
+<td>≈80k*</td>
+<td>Python/节点</td>
+<td>❌</td>
+<td>⚠️(AI)</td>
+<td>❌</td>
+<td>中等</td>
+<td>桌面+Web</td>
+<td>非常友好</td>
+<td>✅</td>
+<td>角色/场景资产生产中枢</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Blender</td>
+<td>3D/2D DCC</td>
+<td>19.1k</td>
+<td>C++/Py</td>
+<td>✅</td>
+<td>✅✅</td>
+<td>❌</td>
+<td>高级</td>
+<td>桌面</td>
+<td>中等</td>
+<td>✅</td>
+<td>影视级动画产能</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Synfig</td>
+<td>2D 矢量</td>
+<td>2.2k</td>
+<td>C++</td>
+<td>❌</td>
+<td>✅</td>
+<td>❌</td>
+<td>中等</td>
+<td>桌面</td>
+<td>中等</td>
+<td>⚠️</td>
+<td>轻量骨骼补间漫剧</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Twine</td>
+<td>交互小说</td>
+<td>2.8k</td>
+<td>TS/HTML</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>入门</td>
+<td>全(Web)</td>
+<td>极友好</td>
+<td>⚠️</td>
+<td>分支剧本 MVP 最快</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Phaser</td>
+<td>HTML5 框架</td>
+<td>39.9k</td>
+<td>JS/TS</td>
+<td>✅</td>
+<td>✅</td>
+<td>❌(Tiled)</td>
+<td>中等</td>
+<td>Web为主</td>
+<td>❌</td>
+<td>✅</td>
+<td>Web 互动漫剧</td>
+</tr>
+<tr>
+<td>8</td>
+<td>Cocos</td>
+<td>游戏引擎</td>
+<td>19.1k</td>
+<td>JS/TS/可视化</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+<td>中等</td>
+<td>全(强移动)</td>
+<td>中</td>
+<td>✅</td>
+<td>移动端漫剧小游戏</td>
+</tr>
+<tr>
+<td>9</td>
+<td>OpenToonz</td>
+<td>2D 手绘</td>
+<td>7.4k</td>
+<td>C++</td>
+<td>❌</td>
+<td>✅✅</td>
+<td>❌</td>
+<td>高级</td>
+<td>桌面</td>
+<td>中等</td>
+<td>✅</td>
+<td>吉卜力级帧动画</td>
+</tr>
+<tr>
+<td>10</td>
+<td>MoneyPrinterTurbo</td>
+<td>AI 短视频</td>
+<td>96.2k</td>
+<td>Python/配置</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>入门</td>
+<td>桌面+Web</td>
+<td>友好</td>
+<td>✅</td>
+<td>一键批量 AI 短剧</td>
+</tr>
+</tbody>
+</table>
+<p>* ComfyUI 星数因 API 限流为估算（2025 已超 70k，2026 持续攀升，实际或达 80k+）。</p>
+<hr />
+<h2 id="_4">四、分类推荐</h2>
+<h3 id="_5">🏆 最佳非程序员友好型</h3>
+<ol>
+<li><strong>Twine</strong> — 纯可视化链接，编剧零代码即可搭分支剧情，做漫剧原型最快。</li>
+<li><strong>Ren'Py</strong> — 极简脚本 + 现成模板，对话漫剧开箱即用。</li>
+<li><strong>ComfyUI</strong> — 节点拖拽生成角色/场景资产，无需写代码。</li>
+<li><strong>MoneyPrinterTurbo</strong> — 填主题即出片，适合口播/解说类短剧批量生产。</li>
+</ol>
+<blockquote>
+<p>组合建议：<strong>Twine（剧本原型）→ Ren'Py（互动呈现）→ ComfyUI（资产）→ MoneyPrinterTurbo（批量发布）</strong>，整条链路非程序员可走通。</p>
+</blockquote>
+<h3 id="_6">🌐 最佳跨平台型</h3>
+<ol>
+<li><strong>Godot</strong> — 一次开发导出全平台（含 Web/iOS/Android/主机），最干净。</li>
+<li><strong>Phaser / three.js</strong> — Web 原生，浏览器即跑，移动端无缝。</li>
+<li><strong>MoneyPrinterTurbo</strong> — 桌面 + Web UI，任意系统可部署。</li>
+<li><strong>Ren'Py / Cocos</strong> — 均覆盖桌面 + 移动 + Web。</li>
+</ol>
+<blockquote>
+<p>若目标是「小程序 / H5 漫剧」，优先 <strong>Godot(Web 导出) / Phaser / Cocos</strong>。</p>
+</blockquote>
+<h3 id="_7">💼 最佳商业化生产型</h3>
+<ol>
+<li><strong>Godot</strong> — MIT 协议、无抽成，已有大量商业游戏验证。</li>
+<li><strong>Cocos Creator</strong> — 国内手游大厂商用标准，小游戏分发成熟。</li>
+<li><strong>Blender</strong> — 影视级产能，可进专业制作流水线。</li>
+<li><strong>MoneyPrinterTurbo</strong> — MIT 可商用，适合规模化内容工厂（需自备 API 与合规）。</li>
+</ol>
+<blockquote>
+<p>警示：含 <strong>GPL-3.0</strong> 协议者（ComfyUI、Blender、Synfig、Krita、OpenToonz、Twine）若做闭源 SaaS，须注意衍生作品开源义务；MIT 类（Godot、Ren'Py、Phaser、Cocos、MoneyPrinterTurbo、three.js）商用最自由。</p>
+</blockquote>
+<hr />
+<h2 id="_8">五、落地组合方案建议</h2>
+<table>
+<thead>
+<tr>
+<th>目标</th>
+<th>推荐组合</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>轻量 AI 漫剧（对话+立绘）</td>
+<td>Ren'Py + ComfyUI</td>
+<td>脚本分支 + AI 生成立绘，最快出片</td>
+</tr>
+<tr>
+<td>可交互 AI 短剧（小程序）</td>
+<td>Godot(Web) + ComfyUI</td>
+<td>引擎做交互，AI 做资产</td>
+</tr>
+<tr>
+<td>影视质感动画漫剧</td>
+<td>Blender(Grease Pencil) + ComfyUI</td>
+<td>2D/3D 动画 + AI 资产</td>
+</tr>
+<tr>
+<td>批量口播/解说短剧</td>
+<td>MoneyPrinterTurbo + n8n</td>
+<td>自动化流水线，规模化</td>
+</tr>
+<tr>
+<td>移动端漫剧小游戏</td>
+<td>Cocos Creator + ComfyUI</td>
+<td>小游戏平台分发</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="_9">六、数据来源与备注</h2>
+<ul>
+<li>GitHub 星数 / Fork / 协议：通过 GitHub API 于 2026-07-07 实时抓取（ComfyUI 因限流为估算）。</li>
+<li>趋势参考：GitHub AI 趋势周榜（2026-07-07）显示 MoneyPrinterTurbo 居 AI 视频生成类前列（96.2k⭐），n8n(195.5k)、Langflow(151.3k) 为可视化 AI 编排热门。</li>
+<li>社区活跃度辅以官方文档、教程丰富度主观评估。</li>
+<li>协议合规提示：GPL-3.0 与 MIT 对商业化闭源影响不同，已在表中标注。</li>
+</ul>
+<div class="footnote">本报告由 WorkBuddy 生成并部署至 GitHub Pages ｜ 数据抓取于 2026-07-07</div>
+</div>
+</body>
+</html>
